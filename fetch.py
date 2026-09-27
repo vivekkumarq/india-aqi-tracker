@@ -79,7 +79,20 @@ def main():
     index = sorted(p[:-5] for p in os.listdir("data/snapshots") if p.endswith(".json"))
     with open("data/index.json", "w") as f:
         json.dump(index, f)
+    build_history(name[:7], index)
     print(f"{name}: {sum(r is not None for r in rows)}/{len(cities)} cities")
+
+
+def build_history(month, index):
+    """Rebuild data/history/YYYY-MM.json: every AQI of that month, so charts load one file instead of many snapshots."""
+    ids = [i for i in index if i.startswith(month)]
+    aqi = []
+    for i in ids:
+        with open(f"data/snapshots/{i}.json") as f:
+            aqi.append([r[0] if r else None for r in json.load(f)["v"]])
+    os.makedirs("data/history", exist_ok=True)
+    with open(f"data/history/{month}.json", "w") as f:
+        json.dump({"ids": ids, "aqi": aqi}, f, separators=(",", ":"))
 
 
 if __name__ == "__main__":
