@@ -1,8 +1,8 @@
 name: update-aqi
 on:
   schedule:
-    - cron: "30 11 * * *"   # 17:00 IST
-    - cron: "30 17 * * *"   # 23:00 IST
+    - cron: "30 0 * * *"    # 06:00 IST
+    - cron: "30 12 * * *"   # 18:00 IST
   workflow_dispatch:
 permissions:
   contents: write
