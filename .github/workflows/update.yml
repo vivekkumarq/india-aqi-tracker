@@ -1,0 +1,21 @@
+name: update-aqi
+on:
+  schedule:
+    - cron: "30 11 * * *"   # 17:00 IST
+    - cron: "30 17 * * *"   # 23:00 IST
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: update-aqi
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 test_fetch.py && python3 fetch.py
+      - run: |
+          git config user.name "vivekkumarq"
+          git config user.email "51886550+vivekkumarq@users.noreply.github.com"
+          git add data
+          git commit -m "AQI snapshot $(TZ=Asia/Kolkata date '+%d %b %Y, %H:%M') IST"
+          git push
