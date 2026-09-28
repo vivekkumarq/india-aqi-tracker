@@ -561,20 +561,22 @@ const forecast = memo(async id => {
       if (k === 'co') mean /= 1000;
       subs.push(subIndex(k, mean));
     });
-    pts.push({t: new Date(h.time[i] + ':00+05:30'), v: subs.length ? Math.round(Math.max(...subs)) : null, pm25: h.pm2_5[i]});
+    // hv: this hour's particulate AQI (no averaging), which is what matters for timing a walk.
+    const pm = [['pm25', h.pm2_5[i]], ['pm10', h.pm10[i]]].filter(([, c]) => c != null).map(([k, c]) => subIndex(k, c));
+    pts.push({t: new Date(h.time[i] + ':00+05:30'), v: subs.length ? Math.round(Math.max(...subs)) : null, hv: pm.length ? Math.max(...pm) : null});
   }
   return pts;
 });
-// Cleanest and dirtiest two-hour daylight window (6 AM to 8 PM) in the next 24 hours, by hourly PM2.5.
+// Cleanest and dirtiest two-hour daylight window (6 AM to 8 PM) in the next 24 hours, by hourly particulate AQI.
 function windows(pts) {
   const now = Date.now(), soon = pts.filter(p => p.t >= now - 36e5 && p.t <= now + 864e5);
   let best = null, worst = null;
   for (let i = 0; i < soon.length - 1; i++) {
-    const hr = istHour(soon[i].t), a = soon[i].pm25, b = soon[i + 1].pm25;
+    const hr = istHour(soon[i].t), a = soon[i].hv, b = soon[i + 1].hv;
     if (hr < 6 || hr > 19 || a == null || b == null) continue;
-    const pm = (a + b) / 2, w = {pm, from: soon[i].t, to: new Date(+soon[i].t + 72e5)};
-    if (!best || pm < best.pm) best = w;
-    if (!worst || pm > worst.pm) worst = w;
+    const w = {aqi: Math.round((a + b) / 2), from: soon[i].t, to: new Date(+soon[i].t + 72e5)};
+    if (!best || w.aqi < best.aqi) best = w;
+    if (!worst || w.aqi > worst.aqi) worst = w;
   }
   return {best, worst};
 }
@@ -591,8 +593,8 @@ async function loadForecast(r) {
     if (r.id !== selId || cityTab !== 'forecast') return;
     const {best, worst} = windows(pts);
     const vals = pts.map(p => p.v).filter(v => v != null), peak = Math.max(...vals);
-    $('fBest').innerHTML = best ? `<div class="good"><div class="k">🌿 Best time to be outdoors</div><div class="v">${winLabel(best)}</div><div class="s">PM2.5 around ${fmt(best.pm)} µg/m³</div></div>
-      <div class="bad"><div class="k">😷 Most polluted hours ahead</div><div class="v">${winLabel(worst)}</div><div class="s">PM2.5 around ${fmt(worst.pm)} µg/m³ · peak AQI ${peak} (${CATS[cat(peak)][0]})</div></div>` : '';
+    $('fBest').innerHTML = best ? `<div class="good"><div class="k">🌿 Best time to be outdoors</div><div class="v">${winLabel(best)}</div><div class="s">Hourly AQI around ${best.aqi} (${CATS[cat(best.aqi)][0]})</div></div>
+      <div class="bad"><div class="k">😷 Most polluted hours ahead</div><div class="v">${winLabel(worst)}</div><div class="s">Hourly AQI around ${worst.aqi} (${CATS[cat(worst.aqi)][0]}) · 24-hour AQI peaks at ${peak}</div></div>` : '';
     lineChart(box, [{name: r.name, color: 'var(--ink2)', pts}], {dotsByCat: true, now: true, label: `${r.name} AQI forecast for the next 48 hours`,
       bands: best ? [{from: best.from, to: best.to, label: 'Cleanest'}] : []});
   } catch {
@@ -884,7 +886,7 @@ $('date').onchange = e => load(index.filter(i => i.startsWith(e.target.value)).a
 $('times').onclick = e => e.target.dataset.id && load(e.target.dataset.id);
 $('prev').onclick = () => load(index[index.indexOf(cur) - 1]);
 $('next').onclick = () => load(index[index.indexOf(cur) + 1]);
-$('state').onchange = () => { selId = null; if (!$('state').value) map.setView([22.8, 80.5], 4.5); renderAll(); };
+$('state').onchange = () => { if (!view().some(r => r.id === selId)) selId = null; if (!$('state').value) map.setView([22.8, 80.5], 4.5); renderAll(); };
 $('q').oninput = renderTable;
 $('thead').onclick = e => { const k = e.target.dataset.k; if (!k) return; sortDir = k === sortKey ? -sortDir : (['name', 'state', 'dom'].includes(k) ? 1 : -1); sortKey = k; renderTable(); };
 $('tbody').onclick = e => { const tr = e.target.closest('tr[data-id]'); tr && select(+tr.dataset.id, true); };

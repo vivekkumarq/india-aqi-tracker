@@ -58,7 +58,19 @@ def get(url):
     raise SystemExit("Open-Meteo unreachable, no snapshot written")
 
 
+def recorded_recently(hours=3):
+    """True when the newest snapshot is younger than `hours`, so a retry run has nothing to do."""
+    names = sorted(p for p in os.listdir("data/snapshots") if p.endswith(".json"))
+    if not names:
+        return False
+    last = datetime.strptime(names[-1][:-5], "%Y-%m-%d_%H%M").replace(tzinfo=IST)
+    return datetime.now(IST) - last < timedelta(hours=hours)
+
+
 def main():
+    if "--if-due" in sys.argv and recorded_recently():
+        print("A reading from the last 3 hours already exists; nothing to do.")
+        return
     cities = json.load(open("data/cities.json", encoding="utf-8"))
     rows = []
     for start in range(0, len(cities), 100):
