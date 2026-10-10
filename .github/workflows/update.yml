@@ -1,13 +1,14 @@
 name: update-aqi
 on:
   schedule:
-    # 06:00 and 18:00 IST, each followed by two retries in case GitHub skips a scheduled run.
-    - cron: "30 0 * * *"
-    - cron: "15 1 * * *"
-    - cron: "0 2 * * *"
-    - cron: "30 12 * * *"
-    - cron: "15 13 * * *"
-    - cron: "0 14 * * *"
+    # About 06:00 and 18:00 IST, each followed by two retries in case GitHub skips a run.
+    # Odd minutes on purpose: GitHub delays runs queued at busy minutes like :00 and :30 by hours.
+    - cron: "23 0 * * *"
+    - cron: "8 1 * * *"
+    - cron: "53 1 * * *"
+    - cron: "23 12 * * *"
+    - cron: "8 13 * * *"
+    - cron: "53 13 * * *"
   workflow_dispatch:
 permissions:
   contents: write
@@ -16,7 +17,7 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: python3 test_fetch.py && python3 fetch.py ${{ github.event_name == 'schedule' && '--if-due' || '' }}
       - run: |
           git config user.name "vivekkumarq"
@@ -24,4 +25,4 @@ jobs:
           git add data
           git diff --cached --quiet && exit 0
           git commit -m "AQI snapshot $(TZ=Asia/Kolkata date '+%d %b %Y, %H:%M') IST"
-          git push
+          git push || (git pull --rebase -q && git push)
