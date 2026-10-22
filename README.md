@@ -1,12 +1,12 @@
 # India Air Quality Tracker
 
-Air Quality Index for 524 Indian cities (population over 1 lakh), recorded twice a day at 6 AM and 6 PM IST.
+Air Quality Index for 524 Indian cities (population over 1 lakh), recorded twice a day, morning and evening (IST).
 
 **Live dashboard:** https://vivekkumarq.github.io/india-aqi-tracker/
 
 ## How it works
 
-1. A scheduled GitHub Actions workflow runs `fetch.py` at 6 AM and 6 PM IST. GitHub sometimes skips scheduled runs, so each slot has two retries that exit early when the reading already exists.
+1. A GitHub Actions workflow runs `fetch.py`, scheduled for about 6 AM and 6 PM IST. GitHub usually starts scheduled runs a few hours late (readings tend to land around 10–11 AM and 10–11 PM) and sometimes skips one, so each slot has two retries that exit early when the reading already exists.
 2. The script pulls the last 24 hours of pollutant concentrations (PM2.5, PM10, NO₂, SO₂, CO, O₃) for every city from the Open-Meteo Air Quality API.
 3. It computes the AQI with the CPCB National Air Quality Index method: 24-hour averages for PM2.5, PM10, NO₂ and SO₂, 8-hour averages for CO and O₃, and the highest sub-index becomes the city's AQI.
 4. Each run is saved as a snapshot in `data/snapshots/` and committed, so the repo holds the full history.

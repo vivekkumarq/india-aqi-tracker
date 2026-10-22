@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>India Air Quality</title>
-<meta name="description" content="Live Air Quality Index for 524 Indian cities, recorded twice a day at 6 AM and 6 PM IST, with 48-hour forecasts, history and city comparisons.">
+<meta name="description" content="Live Air Quality Index for 524 Indian cities, recorded twice a day, with 48-hour forecasts, history and city comparisons.">
 <meta name="theme-color" content="#0b0f17">
 <meta property="og:title" content="India Air Quality Tracker">
 <meta property="og:description" content="Search any of 524 Indian cities: live AQI, 48-hour forecast, history and health advice.">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=3">
+<link rel="stylesheet" href="assets/style.css?v=4">
 </head>
 <body class="loading">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -54,7 +54,7 @@
 
     <div class="hero-grid">
       <div class="hero-main">
-        <span class="eyebrow"><span class="live-dot"></span>Updated daily at 6 AM &amp; 6 PM IST</span>
+        <span class="eyebrow"><span class="live-dot"></span>Updated twice daily, morning &amp; evening</span>
         <h1>How clean is the air<br><span class="grad">in your city today?</span></h1>
         <p class="lead">Live Air Quality Index, 48-hour forecasts and history for <span id="cityCount">524</span> Indian cities, calculated with the CPCB method.</p>
         <div class="searchbox">
@@ -100,8 +100,7 @@
           <button role="radio" data-ck="classic" aria-label="Classic theme" title="Classic"></button>
         </div>
         <div class="next">
-          <div class="next-row"><span>Next air reading <span id="ckNextAt"></span></span><b id="ckNext"></b></div>
-          <div class="next-bar"><i id="ckBar"></i></div>
+          <div class="next-row"><span>Latest air reading <span id="ckNextAt"></span></span><b id="ckNext"></b></div>
         </div>
       </aside>
     </div>
@@ -279,6 +278,6 @@
 <div class="toast" id="toast" role="status"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="assets/app.js?v=3"></script>
+<script src="assets/app.js?v=4"></script>
 </body>
 </html>

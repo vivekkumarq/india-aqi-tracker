@@ -191,13 +191,8 @@ const clock = (() => {
       <circle class="cap" cx="100" cy="100" r="4.5"/>`;
     svg.innerHTML = s;
   }
-  // Readings are scheduled at 06:00 and 18:00 IST.
-  function nextReading(now) {
-    const w = new Date(+now + 198e5), y = w.getUTCFullYear(), m = w.getUTCMonth(), d = w.getUTCDate(), h = w.getUTCHours();
-    const at = (h < 6 ? Date.UTC(y, m, d, 6) : h < 18 ? Date.UTC(y, m, d, 18) : Date.UTC(y, m, d + 1, 6)) - 198e5;
-    return {at, prev: at - 432e5};
-  }
-  const hms = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return [s / 3600, s / 60 % 60, s % 60].map(v => String(Math.floor(v)).padStart(2, '0')).join(':'); };
+  // GitHub starts scheduled runs hours late, so show how old the latest reading is rather than a countdown.
+  const ago = ms => { const m = Math.max(0, Math.floor(ms / 6e4)); return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.floor(m / 60)} h ${m % 60} min ago`; };
   function second(now) {
     let h = now.getHours();
     const ap = h < 12 ? 'AM' : 'PM';
@@ -206,10 +201,11 @@ const clock = (() => {
     set('H', h); set('M', now.getMinutes()); set('S', now.getSeconds());
     $('dAp').textContent = h24 ? '' : ap;
     $('ckDate').textContent = now.toLocaleDateString('en-IN', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'});
-    const nx = nextReading(now);
-    $('ckNext').textContent = hms(nx.at - now);
-    $('ckNextAt').textContent = `· ${timeLabel(new Date(nx.at))} IST`;
-    $('ckBar').style.width = ((now - nx.prev) / 432e5 * 100).toFixed(2) + '%';
+    if (index?.length) {
+      const last = idTime(index.at(-1));
+      $('ckNext').textContent = ago(now - last);
+      $('ckNextAt').textContent = `· ${timeLabel(last)} IST`;
+    }
     if (now.getSeconds() === 0 || !$('ckSr').textContent) $('ckSr').textContent = `Time ${now.toLocaleTimeString('en-IN', {hour: 'numeric', minute: '2-digit'})}`;
   }
   function hands(now) {
@@ -610,7 +606,7 @@ async function loadHistory(r) {
   const pts = (await readings([r.id], start, end)).map(p => ({id: p.id, t: p.t, v: p.v[0]})).filter(p => p.v != null);
   if (r.id !== selId || cityTab !== 'history') return;
   lineChart($('hChart'), [{name: r.name, color: 'var(--ink2)', pts}], {dotsByCat: true, label: `${r.name} AQI history`,
-    empty: 'History fills in as new readings arrive at 6 AM and 6 PM IST each day.'});
+    empty: 'History fills in as new readings arrive, twice a day.'});
   $('hReadings').innerHTML = [...pts].reverse().map(p => `<tr><td>${esc(dateLabel(p.id.slice(0, 10)))}, ${timeLabel(p.id)}</td><td>${p.v}</td><td>${CATS[cat(p.v)][0]}</td></tr>`).join('');
 }
 
